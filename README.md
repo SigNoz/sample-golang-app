@@ -10,3 +10,4 @@ $ go run main.go
 
 
 ## To run SigNoz:
+SERVICE_NAME=goApp INSECURE_MODE=true OTEL_EXPORTER_OTLP_ENDPOINT=<IP of SigNoz backend:4317> go run main.go
