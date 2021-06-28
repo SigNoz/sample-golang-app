@@ -7,6 +7,7 @@ Read the [article](https://blog.logrocket.com/how-to-build-a-rest-api-with-golan
 ```
 SERVICE_NAME=goApp INSECURE_MODE=true OTEL_EXPORTER_OTLP_ENDPOINT=<IP of SigNoz backend:4317> go run main.go
 ```
+*<IP of SigNoz backend:4317> should be without http/https scheme. Eg localhost:4317*
 
 This runs the gin application at port `8090`. Try accessing API at `http://localhost:8090/books`
 
