@@ -90,5 +90,5 @@ func main() {
 	r.DELETE("/books/:id", controllers.DeleteBook)
 
 	// Run the server
-	r.Run()
+	r.Run(":8090")
 }
