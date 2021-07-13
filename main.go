@@ -5,19 +5,19 @@ import (
 	"log"
 	"os"
 
-	"github.com/rahmanfadhil/gin-bookstore/controllers"
-	"github.com/rahmanfadhil/gin-bookstore/models"
-	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc"
 
-	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+	"net/http"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpgrpc"
-	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/propagation"
 
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
 var (
@@ -29,32 +29,21 @@ var (
 
 func initTracer() func(context.Context) error {
 
-	headers := map[string]string{
-		"signoz-access-token": signozToken,
-	}
-
-	secureOption := otlpgrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, ""))
-	if len(insecure) > 0 {
-		secureOption = otlpgrpc.WithInsecure()
-	}
-
-	exporter, err := otlp.NewExporter(
-		context.Background(),
-		otlpgrpc.NewDriver(
-			secureOption,
-			otlpgrpc.WithEndpoint(collectorURL),
-			otlpgrpc.WithHeaders(headers),
-		),
+	// Set up a trace exporter
+	exporter, err := otlptracegrpc.New(context.Background(),
+		otlptracegrpc.WithInsecure(),
+		otlptracegrpc.WithEndpoint(collectorURL),
+		otlptracegrpc.WithDialOption(grpc.WithBlock()),
 	)
 
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	resources, err := resource.New(
 		context.Background(),
 		resource.WithAttributes(
-			label.String("service.name", serviceName),
-			label.String("library.language", "go"),
+			semconv.ServiceNameKey.String(serviceName),
 		),
 	)
 	if err != nil {
@@ -63,12 +52,14 @@ func initTracer() func(context.Context) error {
 
 	otel.SetTracerProvider(
 		sdktrace.NewTracerProvider(
-			sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
 			sdktrace.WithSpanProcessor(sdktrace.NewBatchSpanProcessor(exporter)),
 			sdktrace.WithSyncer(exporter),
 			sdktrace.WithResource(resources),
 		),
 	)
+
+	// set global propagator to tracecontext (the default is no-op).
+	otel.SetTextMapPropagator(propagation.TraceContext{})
 	return exporter.Shutdown
 }
 
@@ -77,18 +68,17 @@ func main() {
 	cleanup := initTracer()
 	defer cleanup(context.Background())
 
-	r := gin.Default()
-	r.Use(otelgin.Middleware(serviceName))
-	// Connect to database
-	models.ConnectDatabase()
+	otelHandler := otelhttp.NewHandler(http.HandlerFunc(helloHandler), "offers event")
 
-	// Routes
-	r.GET("/books", controllers.FindBooks)
-	r.GET("/books/:id", controllers.FindBook)
-	r.POST("/books", controllers.CreateBook)
-	r.PATCH("/books/:id", controllers.UpdateBook)
-	r.DELETE("/books/:id", controllers.DeleteBook)
+	http.Handle("/offers", otelHandler)
+	err := http.ListenAndServe(":8090", nil)
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
+	}
 
-	// Run the server
-	r.Run(":8090")
+}
+
+func helloHandler(w http.ResponseWriter, req *http.Request) {
+	http.Error(w, "Sending Error", http.StatusInternalServerError)
+	return
 }
