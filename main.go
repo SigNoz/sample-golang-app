@@ -5,16 +5,16 @@ import (
 	"log"
 	"os"
 
-	"github.com/rahmanfadhil/gin-bookstore/controllers"
-	"github.com/rahmanfadhil/gin-bookstore/models"
+	"github.com/SigNoz/sample-golang-app/controllers"
+	"github.com/SigNoz/sample-golang-app/models"
 	"google.golang.org/grpc/credentials"
 
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp"
-	"go.opentelemetry.io/otel/exporters/otlp/otlpgrpc"
-	"go.opentelemetry.io/otel/label"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -33,17 +33,17 @@ func initTracer() func(context.Context) error {
 		"signoz-access-token": signozToken,
 	}
 
-	secureOption := otlpgrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, ""))
+	secureOption := otlptracegrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, ""))
 	if len(insecure) > 0 {
-		secureOption = otlpgrpc.WithInsecure()
+		secureOption = otlptracegrpc.WithInsecure()
 	}
 
-	exporter, err := otlp.NewExporter(
+	exporter, err := otlptrace.New(
 		context.Background(),
-		otlpgrpc.NewDriver(
+		otlptracegrpc.NewClient(
 			secureOption,
-			otlpgrpc.WithEndpoint(collectorURL),
-			otlpgrpc.WithHeaders(headers),
+			otlptracegrpc.WithEndpoint(collectorURL),
+			otlptracegrpc.WithHeaders(headers),
 		),
 	)
 
@@ -53,8 +53,8 @@ func initTracer() func(context.Context) error {
 	resources, err := resource.New(
 		context.Background(),
 		resource.WithAttributes(
-			label.String("service.name", serviceName),
-			label.String("library.language", "go"),
+			attribute.String("service.name", serviceName),
+			attribute.String("library.language", "go"),
 		),
 	)
 	if err != nil {
@@ -63,7 +63,7 @@ func initTracer() func(context.Context) error {
 
 	otel.SetTracerProvider(
 		sdktrace.NewTracerProvider(
-			sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
+			sdktrace.WithSampler(sdktrace.AlwaysSample()),
 			sdktrace.WithSpanProcessor(sdktrace.NewBatchSpanProcessor(exporter)),
 			sdktrace.WithSyncer(exporter),
 			sdktrace.WithResource(resources),

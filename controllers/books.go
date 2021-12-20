@@ -3,8 +3,8 @@ package controllers
 import (
 	"net/http"
 
+	"github.com/SigNoz/sample-golang-app/models"
 	"github.com/gin-gonic/gin"
-	"github.com/rahmanfadhil/gin-bookstore/models"
 )
 
 type CreateBookInput struct {
