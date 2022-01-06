@@ -1,6 +1,6 @@
 # Bookstore REST API using Gin and Gorm
 
-Read the [article](https://blog.logrocket.com/how-to-build-a-rest-api-with-golang-using-gin-and-gorm/).
+Read this [article](https://blog.logrocket.com/how-to-build-a-rest-api-with-golang-using-gin-and-gorm/) on understand how to build a sample golang app using Gin and Gorm.
 
 
 ## To run and configure app to send data to SigNoz:
