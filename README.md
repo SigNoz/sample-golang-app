@@ -20,7 +20,7 @@ PATCH  /books/:id
 DELETE /books/:id                
 ```
 
-# Instrumentation Packages
+# [Instrumentation Packages](https://github.com/open-telemetry/opentelemetry-go-contrib/blob/main/instrumentation/README.md#instrumentation-packages)
 
 The [OpenTelemetry registry](https://opentelemetry.io/registry/) is the best place to discover instrumentation packages.
 It will include packages outside of this project.
