@@ -1,14 +1,15 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"github.com/uptrace/opentelemetry-go-extra/otelgorm"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 var DB *gorm.DB
 
 func ConnectDatabase() {
-	database, err := gorm.Open("sqlite3", "test.db")
+	database, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 
 	if err != nil {
 		panic("Failed to connect to database!")
@@ -17,4 +18,7 @@ func ConnectDatabase() {
 	database.AutoMigrate(&Book{})
 
 	DB = database
+	if err := DB.Use(otelgorm.NewPlugin()); err != nil {
+		panic(err)
+	}
 }
