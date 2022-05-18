@@ -11,6 +11,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.6.3
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.6.3
 	go.opentelemetry.io/otel/sdk v1.6.3
+	go.opentelemetry.io/otel/trace v1.6.3 // indirect
 	google.golang.org/grpc v1.46.0
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gorm.io/driver/sqlite v1.3.2

@@ -5,6 +5,8 @@ import (
 
 	"github.com/SigNoz/sample-golang-app/models"
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type CreateBookInput struct {
@@ -21,6 +23,9 @@ type UpdateBookInput struct {
 // Find all books
 func FindBooks(c *gin.Context) {
 	var books []models.Book
+	span := trace.SpanFromContext(c.Request.Context())
+	span.SetAttributes(attribute.String("controller", "books"))
+	span.AddEvent("This is a sample event", trace.WithAttributes(attribute.Int("pid", 4328), attribute.String("sampleAttribute", "Test")))
 	models.DB.WithContext(c.Request.Context()).Find(&books)
 	c.JSON(http.StatusOK, gin.H{"data": books})
 }
