@@ -58,8 +58,7 @@ func initTracer() func(context.Context) error {
 	otel.SetTracerProvider(
 		sdktrace.NewTracerProvider(
 			sdktrace.WithSampler(sdktrace.AlwaysSample()),
-			sdktrace.WithSpanProcessor(sdktrace.NewBatchSpanProcessor(exporter)),
-			sdktrace.WithSyncer(exporter),
+			sdktrace.WithBatcher(exporter),
 			sdktrace.WithResource(resources),
 		),
 	)
