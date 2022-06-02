@@ -2,6 +2,14 @@
 
 Read this [article](https://blog.logrocket.com/how-to-build-a-rest-api-with-golang-using-gin-and-gorm/) on understand how to build a sample golang app using Gin and Gorm.
 
+## Note:
+If you are using the `without-instrumentation` branch to instrument the app following the [blog post present here](https://signoz.io/opentelemetry/go/), after you are done with making the necessary changes in the `main.go` file, run:
+
+```
+go mod tidy
+```
+to download the required packages and populate the go.sum file. 
+
 
 ## To run and configure app to send data to SigNoz:
 ```
