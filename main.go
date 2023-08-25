@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/SigNoz/sample-golang-app/controllers"
 	"github.com/SigNoz/sample-golang-app/metrics"
@@ -29,8 +30,11 @@ var (
 
 func initTracer() func(context.Context) error {
 
-	secureOption := otlptracegrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, ""))
-	if len(insecure) > 0 {
+	var secureOption otlptracegrpc.Option
+
+	if strings.ToLower(insecure) == "true" || insecure == "1" || strings.ToLower(insecure) == "t" {
+		secureOption = otlptracegrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, ""))
+	} else {
 		secureOption = otlptracegrpc.WithInsecure()
 	}
 
