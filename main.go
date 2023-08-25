@@ -32,7 +32,7 @@ func initTracer() func(context.Context) error {
 
 	var secureOption otlptracegrpc.Option
 
-	if strings.ToLower(insecure) == "true" || insecure == "1" || strings.ToLower(insecure) == "t" {
+	if strings.ToLower(insecure) == "false" || insecure == "0" || strings.ToLower(insecure) == "f" {
 		secureOption = otlptracegrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, ""))
 	} else {
 		secureOption = otlptracegrpc.WithInsecure()
