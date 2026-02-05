@@ -1,5 +1,6 @@
 test.db
 .vscode
+
 # Created by https://www.gitignore.io/api/go
 # Edit at https://www.gitignore.io/?templates=go
 
@@ -27,3 +28,5 @@ test.db
 # End of https://www.gitignore.io/api/go
 
 *.DS_Store
+sample-golang-app
+
