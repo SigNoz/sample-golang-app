@@ -195,7 +195,6 @@ func processHeapSizeUpDownCounter(meter api.Meter) {
 }
 
 func InitMeter() *metricsdk.MeterProvider {
-
 	secureOption := otlpmetricgrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, ""))
 	if len(insecure) > 0 {
 		secureOption = otlpmetricgrpc.WithInsecure()
@@ -206,7 +205,6 @@ func InitMeter() *metricsdk.MeterProvider {
 		secureOption,
 		otlpmetricgrpc.WithEndpoint(collectorURL),
 	)
-
 	if err != nil {
 		log.Fatalf("Failed to create exporter: %v", err)
 	}
