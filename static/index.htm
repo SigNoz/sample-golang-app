@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Books API Tester</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --border: #2d3a4d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --success: #3fb950;
+      --danger: #f85149;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 24px;
+      min-height: 100vh;
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      color: var(--text);
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 24px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .card h2 {
+      font-size: 0.95rem;
+      margin: 0 0 12px 0;
+      color: var(--accent);
+      font-weight: 500;
+    }
+    .card label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .card input {
+      width: 100%;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: inherit;
+    }
+    .card input::placeholder { color: var(--muted); }
+    .card button {
+      padding: 8px 16px;
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      border-radius: 6px;
+      font-family: inherit;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .card button:hover { opacity: 0.9; }
+    .card button.danger {
+      background: var(--danger);
+      color: #fff;
+    }
+    .result {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-top: 24px;
+      min-height: 80px;
+    }
+    .result h3 {
+      font-size: 0.85rem;
+      margin: 0 0 8px 0;
+      color: var(--muted);
+    }
+    .result pre {
+      margin: 0;
+      font-size: 0.8rem;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .result .ok { color: var(--success); }
+    .result .err { color: var(--danger); }
+  </style>
+</head>
+<body>
+  <h1>Books API Tester</h1>
+  <p class="subtitle">Test HTTP endpoints for the sample-golang-app</p>
+
+  <div class="grid">
+    <div class="card">
+      <h2>GET /books</h2>
+      <p style="font-size: 0.8rem; color: var(--muted); margin: 0 0 12px 0;">List all books</p>
+      <button type="button" data-action="list">List books</button>
+    </div>
+
+    <div class="card">
+      <h2>GET /books/:id</h2>
+      <label for="get-id">Book ID</label>
+      <input id="get-id" type="text" placeholder="e.g. 1" />
+      <button type="button" data-action="get">Get book</button>
+    </div>
+
+    <div class="card">
+      <h2>POST /books</h2>
+      <label for="create-title">Title</label>
+      <input id="create-title" type="text" placeholder="Book title" />
+      <label for="create-author">Author</label>
+      <input id="create-author" type="text" placeholder="Author name" />
+      <button type="button" data-action="create">Create book</button>
+    </div>
+
+    <div class="card">
+      <h2>PATCH /books/:id</h2>
+      <label for="patch-id">Book ID</label>
+      <input id="patch-id" type="text" placeholder="e.g. 1" />
+      <label for="patch-title">Title (optional)</label>
+      <input id="patch-title" type="text" placeholder="New title" />
+      <label for="patch-author">Author (optional)</label>
+      <input id="patch-author" type="text" placeholder="New author" />
+      <button type="button" data-action="patch">Update book</button>
+    </div>
+
+    <div class="card">
+      <h2>DELETE /books/:id</h2>
+      <label for="delete-id">Book ID</label>
+      <input id="delete-id" type="text" placeholder="e.g. 1" />
+      <button type="button" data-action="delete" class="danger">Delete book</button>
+    </div>
+  </div>
+
+  <div class="result">
+    <h3>Response</h3>
+    <pre id="output">Click a button to call an endpoint.</pre>
+  </div>
+
+  <script>
+    const output = document.getElementById('output');
+
+    function show(status, body) {
+      output.className = status === 'ok' ? 'ok' : 'err';
+      output.textContent = typeof body === 'string' ? body : JSON.stringify(body, null, 2);
+    }
+
+    async function api(method, path, body) {
+      try {
+        const opts = { method, headers: {} };
+        if (body) {
+          opts.headers['Content-Type'] = 'application/json';
+          opts.body = JSON.stringify(body);
+        }
+        const res = await fetch(path, opts);
+        const text = await res.text();
+        let data = text;
+        try { data = JSON.parse(text); } catch (_) {}
+        if (res.ok) {
+          show('ok', data);
+        } else {
+          show('err', { status: res.status, body: data });
+        }
+      } catch (e) {
+        show('err', e.message);
+      }
+    }
+
+    document.querySelectorAll('[data-action]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const action = btn.getAttribute('data-action');
+        switch (action) {
+          case 'list':
+            await api('GET', '/books');
+            break;
+          case 'get': {
+            const id = document.getElementById('get-id').value.trim();
+            if (!id) { show('err', 'Enter a book ID'); return; }
+            await api('GET', '/books/' + encodeURIComponent(id));
+            break;
+          }
+          case 'create': {
+            const title = document.getElementById('create-title').value.trim();
+            const author = document.getElementById('create-author').value.trim();
+            if (!title || !author) { show('err', 'Title and Author are required'); return; }
+            await api('POST', '/books', { title, author });
+            break;
+          }
+          case 'patch': {
+            const id = document.getElementById('patch-id').value.trim();
+            if (!id) { show('err', 'Enter a book ID'); return; }
+            const title = document.getElementById('patch-title').value.trim();
+            const author = document.getElementById('patch-author').value.trim();
+            const body = {};
+            if (title) body.title = title;
+            if (author) body.author = author;
+            if (Object.keys(body).length === 0) { show('err', 'Provide at least title or author'); return; }
+            await api('PATCH', '/books/' + encodeURIComponent(id), body);
+            break;
+          }
+          case 'delete': {
+            const id = document.getElementById('delete-id').value.trim();
+            if (!id) { show('err', 'Enter a book ID'); return; }
+            await api('DELETE', '/books/' + encodeURIComponent(id));
+            break;
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

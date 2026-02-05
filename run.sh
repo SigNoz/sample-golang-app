@@ -10,4 +10,8 @@ export INSECURE_MODE="${INSECURE_MODE:-true}"
 export OTEL_SERVICE_NAME="${OTEL_SERVICE_NAME:-$SERVICE_NAME}"
 
 cd "$(dirname "$0")"
-go run .
+#go run .
+
+go build -v -gcflags 'all=-N -l' -o sample-golang-app
+./sample-golang-app
+
